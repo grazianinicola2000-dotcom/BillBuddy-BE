@@ -13,7 +13,7 @@ public class ExceptionHandler {
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
     public ErrorsDTO handleGenericEx(Exception ex) {
         ex.printStackTrace();
-        return new ErrorsDTO("Errore del server, stiamo lavorando per voi...", LocalDateTime.now());
+        return new ErrorsDTO("An internal server error occurred. Please try again later.", LocalDateTime.now());
     }
 
     @org.springframework.web.bind.annotation.ExceptionHandler(BadRequestException.class)
@@ -43,6 +43,6 @@ public class ExceptionHandler {
     @org.springframework.web.bind.annotation.ExceptionHandler(AuthorizationDeniedException.class)
     @ResponseStatus(HttpStatus.FORBIDDEN) // 403
     public ErrorsDTO handleAuthorizationDeniedEx(AuthorizationDeniedException ex) {
-        return new ErrorsDTO("Non hai i permessi per accedere", LocalDateTime.now());
+        return new ErrorsDTO("You do not have permission to access this resource.", LocalDateTime.now());
     }
 }
