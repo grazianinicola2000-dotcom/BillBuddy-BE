@@ -11,5 +11,6 @@ public record UserResponseDTO(
         String email,
         LocalDate dateOfBirth,
         String avatarUrl,
-        Role role) {
+        Role role,
+        boolean isActive) {
 }

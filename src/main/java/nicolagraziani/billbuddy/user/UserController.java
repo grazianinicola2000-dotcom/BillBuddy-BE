@@ -27,14 +27,13 @@ public class UserController {
 
     @GetMapping("/me")
     public UserResponseDTO getOwnProfile(@AuthenticationPrincipal User currentAuthenticatedUser) {
-        return new UserResponseDTO(currentAuthenticatedUser.getUserId(), currentAuthenticatedUser.getName(), currentAuthenticatedUser.getSurname(), currentAuthenticatedUser.getUsername(), currentAuthenticatedUser.getEmail(), currentAuthenticatedUser.getDateOfBirth(), currentAuthenticatedUser.getAvatarURL(), currentAuthenticatedUser.getRole());
+        return new UserResponseDTO(currentAuthenticatedUser.getUserId(), currentAuthenticatedUser.getName(), currentAuthenticatedUser.getSurname(), currentAuthenticatedUser.getUsername(), currentAuthenticatedUser.getEmail(), currentAuthenticatedUser.getDateOfBirth(), currentAuthenticatedUser.getAvatarURL(), currentAuthenticatedUser.getRole(), currentAuthenticatedUser.isActive());
     }
 
-    //    TODO: implementare soft delete dell'utente
-    @DeleteMapping("/me")
+    @PatchMapping("/me")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void deleteOwnProfile(@AuthenticationPrincipal User currentAuthenticatedUser) {
-        this.userService.findUserByIdAndDelete(currentAuthenticatedUser.getUserId());
+    public void deactivateOwnProfile(@AuthenticationPrincipal User currentAuthenticatedUser) {
+        this.userService.deactivateUserById(currentAuthenticatedUser.getUserId());
     }
 
     @GetMapping("/{userId}")
@@ -42,7 +41,7 @@ public class UserController {
     public UserResponseDTO findById(@PathVariable UUID userId) {
 
         User found = this.userService.findUserById(userId);
-        return new UserResponseDTO(found.getUserId(), found.getName(), found.getSurname(), found.getUsername(), found.getEmail(), found.getDateOfBirth(), found.getAvatarURL(), found.getRole());
+        return new UserResponseDTO(found.getUserId(), found.getName(), found.getSurname(), found.getUsername(), found.getEmail(), found.getDateOfBirth(), found.getAvatarURL(), found.getRole(), found.isActive());
     }
 
     @GetMapping("/username/{username}")

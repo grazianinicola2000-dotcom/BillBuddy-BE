@@ -40,6 +40,15 @@ public class TokenFilter extends OncePerRequestFilter {
         //    AUTORIZZAZIONE
         UUID userId = this.tokenTools.extractIdFromToken(accessToken);
         User authenticatedUser = this.userService.findUserById(userId);
+        if (!authenticatedUser.isActive()) {
+//            throw new UnauthorizedException("Invalid credentials");
+            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+            response.setContentType("application/json");
+            response.getWriter().write("""
+                        {"message": "Invalid credentials"}
+                    """);
+            return;
+        }
         Authentication authentication = new UsernamePasswordAuthenticationToken(authenticatedUser, null, authenticatedUser.getAuthorities());
         SecurityContextHolder.getContext().setAuthentication(authentication);
 

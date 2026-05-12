@@ -25,7 +25,7 @@ public class UserService {
         this.userRepository = userRepository;
     }
 
-    public User saveUser(UserDTO body) {
+    public UserResponseDTO saveUser(UserDTO body) {
 
         if (this.userRepository.existsByEmail(body.email())) {
             throw new BadRequestException("Email already taken!");
@@ -37,7 +37,7 @@ public class UserService {
         User newUser = new User(body.name(), body.surname(), body.username(), body.email().toLowerCase(), this.bcrypt.encode(body.password()), body.dateOfBirth());
         this.userRepository.save(newUser);
         log.info("User {} {} has been successfully registered", body.name(), body.surname());
-        return newUser;
+        return new UserResponseDTO(newUser.getUserId(), newUser.getName(), newUser.getSurname(), newUser.getUsername(), newUser.getEmail(), newUser.getDateOfBirth(), newUser.getAvatarURL(), newUser.getRole(), newUser.isActive());
     }
 
     public Page<UserResponseDTO> findAll(int page, int size, String sortBy) {
@@ -46,7 +46,7 @@ public class UserService {
         Pageable pageable = PageRequest.of(page, size, Sort.by(sortBy));
         return this.userRepository.findAll(pageable)
                 .map(user -> new UserResponseDTO(
-                        user.getUserId(), user.getName(), user.getSurname(), user.getUsername(), user.getEmail(), user.getDateOfBirth(), user.getAvatarURL(), user.getRole()
+                        user.getUserId(), user.getName(), user.getSurname(), user.getUsername(), user.getEmail(), user.getDateOfBirth(), user.getAvatarURL(), user.getRole(), user.isActive()
                 ));
     }
 
@@ -55,16 +55,17 @@ public class UserService {
     }
 
     public User findByEmail(String email) {
-        return this.userRepository.findByEmail(email).orElseThrow(() -> new NotFoundException("User with email " + email + " not found"));
+        return this.userRepository.findByEmailAndIsActiveTrue(email).orElseThrow(() -> new NotFoundException("User with email " + email + " not found"));
     }
 
     public User findByUsername(String username) {
-        return this.userRepository.findByUsername(username).orElseThrow(() -> new NotFoundException("User with username " + username + " not found"));
+        return this.userRepository.findByUsernameAndIsActiveTrue(username).orElseThrow(() -> new NotFoundException("User with username " + username + " not found"));
     }
 
-    public void findUserByIdAndDelete(UUID userId) {
+    public void deactivateUserById(UUID userId) {
         User found = this.findUserById(userId);
-        this.userRepository.delete(found);
-        log.info("User {} {} has been successfully deleted", found.getSurname(), found.getName());
+        found.setActive(false);
+        this.userRepository.save(found);
+        log.info("User {} {} has been successfully deactivated", found.getSurname(), found.getName());
     }
 }

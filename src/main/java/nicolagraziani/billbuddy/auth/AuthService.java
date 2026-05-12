@@ -24,7 +24,9 @@ public class AuthService {
 
         try {
             User found = this.userService.findByEmail(body.email().toLowerCase());
-
+            if (!found.isActive()) {
+                throw new UnauthorizedException("Account disabled");
+            }
             if (this.bcrypt.matches(body.password(), found.getPassword())) {
                 return this.tokenTools.generateToken(found);
             } else {

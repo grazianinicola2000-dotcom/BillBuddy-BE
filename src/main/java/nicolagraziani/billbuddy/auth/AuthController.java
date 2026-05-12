@@ -1,8 +1,8 @@
 package nicolagraziani.billbuddy.auth;
 
 import nicolagraziani.billbuddy.exceptions.ValidationException;
-import nicolagraziani.billbuddy.user.User;
 import nicolagraziani.billbuddy.user.UserDTO;
+import nicolagraziani.billbuddy.user.UserResponseDTO;
 import nicolagraziani.billbuddy.user.UserService;
 import org.springframework.context.support.DefaultMessageSourceResolvable;
 import org.springframework.http.HttpStatus;
@@ -30,7 +30,7 @@ public class AuthController {
 
     @PostMapping("/register")
     @ResponseStatus(HttpStatus.CREATED)
-    public User saveUser(@RequestBody @Validated UserDTO body, BindingResult validation) {
+    public UserResponseDTO saveUser(@RequestBody @Validated UserDTO body, BindingResult validation) {
         if (validation.hasErrors()) {
             List<String> errors = validation.getFieldErrors().stream().map(DefaultMessageSourceResolvable::getDefaultMessage).toList();
             throw new ValidationException(errors);
