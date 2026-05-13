@@ -55,7 +55,7 @@ public class UserService {
     }
 
     public User findActiveUserById(UUID activeUserId) {
-        return this.userRepository.findByIdAndIsActiveTrue(activeUserId).orElseThrow(() -> new NotFoundException(activeUserId));
+        return this.userRepository.findByUserIdAndIsActiveTrue(activeUserId).orElseThrow(() -> new NotFoundException(activeUserId));
     }
 
     public User findByEmail(String email) {
@@ -68,8 +68,21 @@ public class UserService {
 
     public void deactivateUserById(UUID userId) {
         User found = this.findUserById(userId);
+        if (!found.isActive()) {
+            throw new BadRequestException("User is already inactive");
+        }
         found.setActive(false);
         this.userRepository.save(found);
-        log.info("User {} {} has been successfully deactivated", found.getSurname(), found.getName());
+        log.info("User {} has been successfully deactivated", found.getUsername());
+    }
+
+    public void activateUserById(UUID userId) {
+        User found = this.findUserById(userId);
+        if (found.isActive()) {
+            throw new BadRequestException("User is already active");
+        }
+        found.setActive(true);
+        this.userRepository.save(found);
+        log.info("User {} has been successfully activated", found.getUsername());
     }
 }

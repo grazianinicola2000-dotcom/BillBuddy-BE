@@ -4,15 +4,16 @@ import org.springframework.http.HttpStatus;
 import org.springframework.security.authorization.AuthorizationDeniedException;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 @RestControllerAdvice
 public class ExceptionHandler {
     @org.springframework.web.bind.annotation.ExceptionHandler(Exception.class)
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
     public ErrorsDTO handleGenericEx(Exception ex) {
-        ex.printStackTrace();
         return new ErrorsDTO("An internal server error occurred. Please try again later.", LocalDateTime.now());
     }
 
@@ -44,5 +45,15 @@ public class ExceptionHandler {
     @ResponseStatus(HttpStatus.FORBIDDEN) // 403
     public ErrorsDTO handleAuthorizationDeniedEx(AuthorizationDeniedException ex) {
         return new ErrorsDTO("You do not have permission to access this resource.", LocalDateTime.now());
+    }
+
+    @org.springframework.web.bind.annotation.ExceptionHandler(MethodArgumentTypeMismatchException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public ErrorsDTO handleMethodArgumentTypeMismatch(
+            MethodArgumentTypeMismatchException ex) {
+        if (ex.getRequiredType() == UUID.class) {
+            return new ErrorsDTO("Invalid UUID format", LocalDateTime.now());
+        }
+        return new ErrorsDTO("Invalid request parameter", LocalDateTime.now());
     }
 }
