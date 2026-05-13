@@ -54,6 +54,10 @@ public class UserService {
         return this.userRepository.findById(userId).orElseThrow(() -> new NotFoundException(userId));
     }
 
+    public User findActiveUserById(UUID activeUserId) {
+        return this.userRepository.findByIdAndIsActiveTrue(activeUserId).orElseThrow(() -> new NotFoundException(activeUserId));
+    }
+
     public User findByEmail(String email) {
         return this.userRepository.findByEmailAndIsActiveTrue(email).orElseThrow(() -> new NotFoundException("User with email " + email + " not found"));
     }
