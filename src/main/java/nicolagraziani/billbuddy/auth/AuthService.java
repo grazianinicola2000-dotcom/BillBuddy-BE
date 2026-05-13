@@ -23,7 +23,7 @@ public class AuthService {
     public String checkCredentialAndGenerateToken(LoginDTO body) {
 
         try {
-            User found = this.userService.findByEmail(body.email().toLowerCase());
+            User found = this.userService.findByEmailAndIsActive(body.email().toLowerCase());
             if (!found.isActive()) {
                 throw new UnauthorizedException("Account disabled");
             }

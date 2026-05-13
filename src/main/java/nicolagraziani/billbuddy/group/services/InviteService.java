@@ -29,8 +29,8 @@ public class InviteService {
 
     public InviteResponseDTO createInvite(Group group, User invitedBy, User receiver) {
         Group foundGroup = this.groupService.findGroupById(group.getGroupId());
-        User foundInvitedBy = this.userService.findUserById(invitedBy.getUserId());
-        User foundReceiver = this.userService.findUserById(receiver.getUserId());
+        User foundInvitedBy = this.userService.findActiveUserById(invitedBy.getUserId());
+        User foundReceiver = this.userService.findActiveUserById(receiver.getUserId());
 
         if (this.inviteRepository.existsByGroupAndReceiverAndStatus(foundGroup, foundReceiver, InviteStatus.PENDING)) {
             throw new BadRequestException("A pending invite already exists for this user");
@@ -41,9 +41,18 @@ public class InviteService {
         if (foundInvitedBy.getUserId().equals(foundReceiver.getUserId())) {
             throw new BadRequestException("You cannot invite yourself");
         }
+        if (!this.groupMemberService.isAdminOrOwner(foundGroup, foundInvitedBy)) {
+            throw new BadRequestException("Only group admins or owners can send invites");
+        }
 
         Invite newInvite = new Invite(foundGroup, foundInvitedBy, foundReceiver);
         this.inviteRepository.save(newInvite);
+        
+        log.info("User {} invited {} to group {}",
+                foundInvitedBy.getUsername(),
+                foundReceiver.getUsername(),
+                foundGroup.getName());
+
         return new InviteResponseDTO(
                 newInvite.getInviteId(),
                 foundGroup.getGroupId(),

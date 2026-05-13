@@ -58,11 +58,11 @@ public class UserService {
         return this.userRepository.findByUserIdAndIsActiveTrue(activeUserId).orElseThrow(() -> new NotFoundException(activeUserId));
     }
 
-    public User findByEmail(String email) {
+    public User findByEmailAndIsActive(String email) {
         return this.userRepository.findByEmailAndIsActiveTrue(email).orElseThrow(() -> new NotFoundException("User with email " + email + " not found"));
     }
 
-    public User findByUsername(String username) {
+    public User findByUsernameAndIsActive(String username) {
         return this.userRepository.findByUsernameAndIsActiveTrue(username).orElseThrow(() -> new NotFoundException("User with username " + username + " not found"));
     }
 

@@ -26,7 +26,7 @@ public class UserController {
 
     @GetMapping("/username/{username}")
     public PublicUserResponseDTO findByUsername(@PathVariable String username) {
-        User found = this.userService.findByUsername(username);
+        User found = this.userService.findByUsernameAndIsActive(username);
         return new PublicUserResponseDTO(found.getUserId(), found.getUsername(), found.getAvatarURL());
     }
 }
