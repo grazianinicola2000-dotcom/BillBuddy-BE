@@ -22,4 +22,6 @@ public interface GroupMemberRepository extends JpaRepository<GroupMember, UUID> 
     List<GroupMember> findAllByGroup(Group group);
 
     Page<GroupMember> findByUser(User user, Pageable pageable);
+
+    void deleteAllByGroup(Group group);
 }
