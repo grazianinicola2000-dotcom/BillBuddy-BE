@@ -10,7 +10,6 @@ import nicolagraziani.billbuddy.group.payloads.GroupDetailsResponseDTO;
 import nicolagraziani.billbuddy.group.payloads.GroupMemberResponseDTO;
 import nicolagraziani.billbuddy.group.payloads.GroupResponseDTO;
 import nicolagraziani.billbuddy.group.repositories.GroupRepository;
-import nicolagraziani.billbuddy.user.Role;
 import nicolagraziani.billbuddy.user.User;
 import nicolagraziani.billbuddy.user.UserService;
 import org.springframework.data.domain.Page;
@@ -114,18 +113,10 @@ public class GroupService {
         );
     }
 
-    public boolean isOwnerOrSystemAdmin(Group group, User user) {
-        if (user.getRole() == Role.ADMIN) {
-            return true;
-        }
-        GroupMember membership = this.groupMemberService.findByGroupAndUser(group, user);
-        return membership.getRole() == GroupRole.OWNER;
-    }
-
     @Transactional
     public GroupResponseDTO updateGroup(UUID groupId, User user, CreateGroupDTO body) {
         Group found = this.findGroupById(groupId);
-        if (!isOwnerOrSystemAdmin(found, user)) {
+        if (!this.groupMemberService.isOwnerOrSystemAdmin(found, user)) {
             throw new AuthorizationDeniedException("You are not allowed to modify this group");
         }
         found.setName(body.name());
@@ -140,7 +131,7 @@ public class GroupService {
     @Transactional
     public void deleteGroup(UUID groupId, User user) {
         Group found = this.findGroupById(groupId);
-        if (!isOwnerOrSystemAdmin(found, user)) {
+        if (!this.groupMemberService.isOwnerOrSystemAdmin(found, user)) {
             throw new AuthorizationDeniedException("You are not allowed to delete this group");
         }
         this.groupMemberService.deleteAllByGroup(found);

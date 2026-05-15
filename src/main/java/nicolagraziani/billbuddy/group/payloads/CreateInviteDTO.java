@@ -1,13 +1,9 @@
 package nicolagraziani.billbuddy.group.payloads;
 
-import jakarta.validation.constraints.NotNull;
-import nicolagraziani.billbuddy.group.enums.GroupRole;
-
-import java.util.UUID;
+import jakarta.validation.constraints.NotBlank;
 
 public record CreateInviteDTO(
-        @NotNull(message = "Receiver id is required")
-        UUID receiverId,
-        GroupRole role
+        @NotBlank(message = "Username is required")
+        String username
 ) {
 }
