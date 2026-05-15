@@ -1,7 +1,10 @@
 package nicolagraziani.billbuddy.group.entities;
 
 import jakarta.persistence.*;
-import lombok.*;
+import lombok.AccessLevel;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 import nicolagraziani.billbuddy.user.User;
 
 import java.time.LocalDateTime;
@@ -12,7 +15,6 @@ import java.util.UUID;
 @NoArgsConstructor
 @Getter
 @Setter
-@ToString
 public class Group {
 
     @Id
