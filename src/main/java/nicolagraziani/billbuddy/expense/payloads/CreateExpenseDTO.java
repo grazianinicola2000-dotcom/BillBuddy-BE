@@ -2,7 +2,6 @@ package nicolagraziani.billbuddy.expense.payloads;
 
 import jakarta.validation.constraints.*;
 import nicolagraziani.billbuddy.expense.enums.CurrencyCode;
-import nicolagraziani.billbuddy.expense.enums.ExpenseType;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -18,8 +17,6 @@ public record CreateExpenseDTO(
         @NotNull(message = "Total amount is required")
         @DecimalMin(value = "0.01", message = "Total amount must be greater than 0")
         BigDecimal totalAmount,
-        @NotNull(message = "Expense type is required")
-        ExpenseType expenseType,
         UUID groupId,
         UUID categoryId,
         @NotNull(message = "Currency code is required")
@@ -27,7 +24,6 @@ public record CreateExpenseDTO(
         @NotNull(message = "Expense date is required")
         @Past(message = "expenseDate cannot be in the future")
         LocalDate expenseDate,
-        @NotEmpty(message = "At least one participant is required")
         List<UUID> participantIds
 
 ) {
