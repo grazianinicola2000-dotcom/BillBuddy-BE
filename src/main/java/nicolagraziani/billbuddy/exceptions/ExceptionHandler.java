@@ -44,7 +44,7 @@ public class ExceptionHandler {
     @org.springframework.web.bind.annotation.ExceptionHandler(AuthorizationDeniedException.class)
     @ResponseStatus(HttpStatus.FORBIDDEN) // 403
     public ErrorsDTO handleAuthorizationDeniedEx(AuthorizationDeniedException ex) {
-        return new ErrorsDTO("You do not have permission to access this resource.", LocalDateTime.now());
+        return new ErrorsDTO(ex.getMessage(), LocalDateTime.now());
     }
 
     @org.springframework.web.bind.annotation.ExceptionHandler(MethodArgumentTypeMismatchException.class)
