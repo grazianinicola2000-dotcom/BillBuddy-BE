@@ -10,9 +10,9 @@ import java.util.UUID;
 
 public record CreateExpenseDTO(
         @NotBlank(message = "Title is required")
-        @Size(max = 50, message = "Title cannot exceed 100 characters")
+        @Size(max = 50, message = "Title cannot exceed 50 characters")
         String title,
-        @Size(max = 255, message = "Description cannot exceed 500 characters")
+        @Size(max = 255, message = "Description cannot exceed 255 characters")
         String description,
         @NotNull(message = "Total amount is required")
         @DecimalMin(value = "0.01", message = "Total amount must be greater than 0")
@@ -22,7 +22,7 @@ public record CreateExpenseDTO(
         @NotNull(message = "Currency code is required")
         CurrencyCode currencyCode,
         @NotNull(message = "Expense date is required")
-        @Past(message = "expenseDate cannot be in the future")
+        @PastOrPresent(message = "expenseDate cannot be in the future")
         LocalDate expenseDate,
         List<UUID> participantIds
 

@@ -10,7 +10,7 @@ import java.util.UUID;
 @Repository
 public interface ExpenseCategoryRepository extends JpaRepository<ExpenseCategory, UUID> {
 
-    Optional<ExpenseCategory> findByName(String name);
+    Optional<ExpenseCategory> findByNameIgnoreCase(String name);
 
-    boolean existsByName(String name);
+    boolean existsByNameIgnoreCase(String name);
 }

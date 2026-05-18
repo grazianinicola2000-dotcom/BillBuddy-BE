@@ -54,9 +54,9 @@ public class GroupService {
     }
 
     public Page<GroupResponseDTO> findAll(int page, int size, String sortBy) {
-        if (size > 100 || size < 0) size = 20;
+        if (size > 100 || size < 1) size = 20;
         if (page < 0) page = 0;
-        Pageable pageable = PageRequest.of(page, size, Sort.by(sortBy));
+        Pageable pageable = PageRequest.of(page, size, Sort.by(sortBy).descending());
         return this.groupRepository.findAll(pageable)
                 .map(group -> new GroupResponseDTO(
                         group.getGroupId(), group.getName(), group.getDescription(), group.getImageUrl(), group.getCreatedAt()
@@ -64,10 +64,10 @@ public class GroupService {
     }
 
     public Page<GroupResponseDTO> findMyGroups(int page, int size, String sortBy, User user) {
-        if (size > 100 || size < 0) size = 20;
+        if (size > 100 || size < 1) size = 20;
         if (page < 0) page = 0;
         User foundUser = this.userService.findActiveUserById(user.getUserId());
-        Pageable pageable = PageRequest.of(page, size, Sort.by(sortBy));
+        Pageable pageable = PageRequest.of(page, size, Sort.by(sortBy).descending());
         return this.groupMemberService.findByUser(foundUser, pageable)
                 .map(groupMember -> {
                     Group group = groupMember.getGroup();

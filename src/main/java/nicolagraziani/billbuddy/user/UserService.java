@@ -43,7 +43,7 @@ public class UserService {
     public Page<UserResponseDTO> findAll(int page, int size, String sortBy) {
         if (size > 100 || size < 0) size = 20;
         if (page < 0) page = 0;
-        Pageable pageable = PageRequest.of(page, size, Sort.by(sortBy));
+        Pageable pageable = PageRequest.of(page, size, Sort.by(sortBy).descending());
         return this.userRepository.findAll(pageable)
                 .map(user -> new UserResponseDTO(
                         user.getUserId(), user.getName(), user.getSurname(), user.getUsername(), user.getEmail(), user.getDateOfBirth(), user.getAvatarURL(), user.getRole(), user.isActive()

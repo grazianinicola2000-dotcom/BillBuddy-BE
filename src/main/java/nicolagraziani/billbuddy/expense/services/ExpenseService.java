@@ -10,12 +10,18 @@ import nicolagraziani.billbuddy.expense.enums.ExpenseType;
 import nicolagraziani.billbuddy.expense.payloads.CreateExpenseDTO;
 import nicolagraziani.billbuddy.expense.payloads.ExpenseResponseDTO;
 import nicolagraziani.billbuddy.expense.payloads.ExpenseSplitResponseDTO;
+import nicolagraziani.billbuddy.expense.payloads.GetExpensesFilterDTO;
 import nicolagraziani.billbuddy.expense.repositories.ExpenseRepository;
 import nicolagraziani.billbuddy.group.entities.Group;
 import nicolagraziani.billbuddy.group.services.GroupMemberService;
 import nicolagraziani.billbuddy.group.services.GroupService;
+import nicolagraziani.billbuddy.user.Role;
 import nicolagraziani.billbuddy.user.User;
 import nicolagraziani.billbuddy.user.UserService;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.security.authorization.AuthorizationDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -45,6 +51,13 @@ public class ExpenseService {
 
     public Expense findExpenseById(UUID expenseId) {
         return this.expenseRepository.findById(expenseId).orElseThrow(() -> new NotFoundException(expenseId));
+    }
+
+    public ExpenseResponseDTO getExpenseById(UUID expenseId, User currentUser) {
+        User foundUser = this.userService.findActiveUserById(currentUser.getUserId());
+        Expense expense = this.findExpenseById(expenseId);
+        validateExpenseAccess(expense, foundUser);
+        return mapToResponse(expense);
     }
 
     @Transactional
@@ -179,6 +192,7 @@ public class ExpenseService {
         List<ExpenseSplitResponseDTO> splits = expense.getSplits().stream().map(split -> new ExpenseSplitResponseDTO(
                         split.getUser().getUserId(),
                         split.getUser().getUsername(),
+                        split.getUser().getAvatarURL(),
                         split.getAmountOwed()))
                 .toList();
 
@@ -194,10 +208,78 @@ public class ExpenseService {
                 expense.getPaidBy().getUsername(),
                 expense.getGroup() != null ? expense.getGroup().getGroupId() : null,
                 expense.getGroup() != null ? expense.getGroup().getName() : null,
+                expense.getExpenseCategory() != null ? expense.getExpenseCategory().getExpenseCategoryId() : null,
+                expense.getExpenseCategory() != null ? expense.getExpenseCategory().getName() : null,
                 splits,
                 expense.getCreatedAt()
         );
     }
 
+    //    VALIDATE EXPENSE ACCESS
+    private void validateExpenseAccess(Expense expense, User user) {
+        boolean isPayer = expense.getPaidBy().getUserId().equals(user.getUserId());
+        boolean isParticipant = expense.getSplits().stream().anyMatch(expenseSplit -> expenseSplit.getUser().getUserId().equals(user.getUserId()));
+        boolean isSystemAdmin = user.getRole() == Role.ADMIN;
 
+        if (!isPayer && !isParticipant && !isSystemAdmin) {
+            throw new AuthorizationDeniedException("You are not allowed to access this expense");
+        }
+    }
+
+    //    FIND MY EXPENSES
+    public Page<ExpenseResponseDTO> findExpensesPaidByUser(int page, int size, String sortBy, User currentUser, GetExpensesFilterDTO filters) {
+        if (size > 100 || size < 1) size = 20;
+        if (page < 0) page = 0;
+        Pageable pageable = PageRequest.of(page, size, Sort.by(sortBy).descending());
+
+        User foundUser = this.userService.findActiveUserById(currentUser.getUserId());
+
+        Page<Expense> expenses;
+        if (filters != null && filters.expenseType() != null) {
+            expenses = this.expenseRepository.findByPaidByAndExpenseType(foundUser, filters.expenseType(), pageable);
+        } else {
+            expenses = this.expenseRepository.findByPaidBy(foundUser, pageable);
+        }
+        return expenses.map(this::mapToResponse);
+    }
+
+    //    FIND GROUP EXPENSES
+    public Page<ExpenseResponseDTO> findGroupExpenses(int page, int size, String sortBy, User currentUser, GetExpensesFilterDTO filters, UUID groupId) {
+        if (size > 100 || size < 1) size = 20;
+        if (page < 0) page = 0;
+        Pageable pageable = PageRequest.of(page, size, Sort.by(sortBy).descending());
+        Group foundGroup = this.groupService.findGroupById(groupId);
+        User foundUser = this.userService.findActiveUserById(currentUser.getUserId());
+        this.groupMemberService.validateMembership(foundGroup, foundUser);
+
+        Page<Expense> expenses;
+        if (filters != null && filters.expenseType() != null) {
+            expenses = this.expenseRepository.findByGroupAndExpenseType(foundGroup, filters.expenseType(), pageable);
+        } else {
+            expenses = this.expenseRepository.findByGroup(foundGroup, pageable);
+        }
+        return expenses.map(this::mapToResponse);
+    }
+
+    //    DELETE EXPENSE
+    @Transactional
+    public void deleteExpense(UUID expenseId, User currentUser) {
+        Expense foundExpense = this.findExpenseById(expenseId);
+        User foundUser = this.userService.findActiveUserById(currentUser.getUserId());
+
+        boolean isPayer = foundExpense.getPaidBy().getUserId().equals(foundUser.getUserId());
+        boolean isSystemAdmin = foundUser.getRole() == Role.ADMIN;
+
+        boolean isGroupOwner = false;
+        if (foundExpense.getGroup() != null) {
+            isGroupOwner = this.groupMemberService.isOwnerOrSystemAdmin(foundExpense.getGroup(), foundUser);
+        }
+
+        if (!isPayer && !isGroupOwner && !isSystemAdmin) {
+            throw new AuthorizationDeniedException("You are not allowed to delete this expense");
+        }
+
+        this.expenseRepository.delete(foundExpense);
+        log.info("Expense '{}' deleted by user {}", foundExpense.getTitle(), foundUser.getUsername());
+    }
 }

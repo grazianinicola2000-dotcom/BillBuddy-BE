@@ -171,9 +171,9 @@ public class InviteService {
     }
 
     public Page<InviteResponseDTO> findMyInvites(int page, int size, String sortBy, User user, InviteStatus status) {
-        if (size > 100 || size < 0) size = 20;
+        if (size > 100 || size < 1) size = 20;
         if (page < 0) page = 0;
-        Pageable pageable = PageRequest.of(page, size, Sort.by(sortBy));
+        Pageable pageable = PageRequest.of(page, size, Sort.by(sortBy).descending());
         User foundUser = this.userService.findActiveUserById(user.getUserId());
 
         Page<Invite> invites;

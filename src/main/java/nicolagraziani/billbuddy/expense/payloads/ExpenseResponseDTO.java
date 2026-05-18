@@ -21,6 +21,8 @@ public record ExpenseResponseDTO(
         String paidByUsername,
         UUID groupId,
         String groupName,
+        UUID categoryId,
+        String categoryName,
         List<ExpenseSplitResponseDTO> splits,
         LocalDateTime createdAt
 ) {

@@ -160,4 +160,11 @@ public class GroupMemberService {
                 foundTargetUser.getUsername(),
                 foundGroup.getName());
     }
+
+    //    VALIDATE MEMBERSHIP
+    public void validateMembership(Group group, User user) {
+        if (!this.existsByGroupAndUser(group, user)) {
+            throw new AuthorizationDeniedException("You are not a member of this group");
+        }
+    }
 }

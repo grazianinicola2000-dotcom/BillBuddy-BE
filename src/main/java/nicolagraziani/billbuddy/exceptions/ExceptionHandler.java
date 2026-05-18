@@ -56,10 +56,4 @@ public class ExceptionHandler {
         }
         return new ErrorsDTO("Invalid request parameter", LocalDateTime.now());
     }
-
-    @org.springframework.web.bind.annotation.ExceptionHandler(MethodArgumentTypeMismatchException.class)
-    @ResponseStatus(HttpStatus.BAD_REQUEST)
-    public ErrorsDTO handleTypeMismatch(MethodArgumentTypeMismatchException ex) {
-        return new ErrorsDTO("Invalid parameter format", LocalDateTime.now());
-    }
 }
