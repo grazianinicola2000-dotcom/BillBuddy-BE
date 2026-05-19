@@ -14,13 +14,13 @@ import java.util.UUID;
 @Repository
 public interface SettlementRepository extends JpaRepository<Settlement, UUID> {
 
-    Page<Settlement> findByPayer(User payer, Pageable pageable);
+    Page<Settlement> findByDebtor(User Debtor, Pageable pageable);
 
-    Page<Settlement> findByReceiver(User receiver, Pageable pageable);
+    Page<Settlement> findByCreditor(User creditor, Pageable pageable);
 
     Page<Settlement> findByGroup(Group group, Pageable pageable);
 
     Page<Settlement> findByGroupAndCurrencyCode(Group group, CurrencyCode currencyCode, Pageable pageable);
 
-    Page<Settlement> findByPayerAndCurrencyCode(User payer, CurrencyCode currencyCode, Pageable pageable);
+    Page<Settlement> findByDebtorAndCurrencyCode(User debtor, CurrencyCode currencyCode, Pageable pageable);
 }

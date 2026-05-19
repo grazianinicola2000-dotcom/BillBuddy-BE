@@ -33,9 +33,13 @@ public class ExpenseSplit {
     @Column(nullable = false, name = "amount_owed", precision = 10, scale = 2)
     private BigDecimal amountOwed;
 
+    @Column(nullable = false, name = "amount_paid", precision = 10, scale = 2)
+    private BigDecimal amountPaid;
+
     public ExpenseSplit(Expense expense, User user, BigDecimal amountOwed) {
         this.expense = expense;
         this.user = user;
         this.amountOwed = amountOwed;
+        this.amountPaid = BigDecimal.ZERO;
     }
 }

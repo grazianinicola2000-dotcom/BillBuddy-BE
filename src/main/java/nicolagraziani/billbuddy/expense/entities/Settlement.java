@@ -26,12 +26,12 @@ public class Settlement {
     private UUID settlementId;
 
     @ManyToOne
-    @JoinColumn(nullable = false, name = "payer_id")
-    private User payer;
+    @JoinColumn(nullable = false, name = "debtor_id")
+    private User debtor;
 
     @ManyToOne
-    @JoinColumn(nullable = false, name = "receiver_id")
-    private User receiver;
+    @JoinColumn(nullable = false, name = "creditor_id")
+    private User creditor;
 
     @Column(nullable = false, name = "amount", precision = 10, scale = 2)
     private BigDecimal amount;
@@ -47,16 +47,21 @@ public class Settlement {
     @Column(nullable = false, name = "created_at")
     private LocalDateTime createdAt;
 
+    @ManyToOne
+    @JoinColumn(nullable = false, name = "expense_split_id")
+    private ExpenseSplit expenseSplit;
+
     @Column
     private String note;
 
-    public Settlement(User payer, User receiver, BigDecimal amount, CurrencyCode currencyCode, Group group, String note) {
-        this.payer = payer;
-        this.receiver = receiver;
+    public Settlement(User payer, User receiver, BigDecimal amount, CurrencyCode currencyCode, Group group, String note, ExpenseSplit expenseSplit) {
+        this.debtor = payer;
+        this.creditor = receiver;
         this.amount = amount;
         this.currencyCode = currencyCode;
         this.group = group;
         this.createdAt = LocalDateTime.now();
         this.note = note;
+        this.expenseSplit = expenseSplit;
     }
 }

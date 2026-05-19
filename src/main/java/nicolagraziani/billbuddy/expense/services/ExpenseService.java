@@ -190,10 +190,12 @@ public class ExpenseService {
     private ExpenseResponseDTO mapToResponse(Expense expense) {
 
         List<ExpenseSplitResponseDTO> splits = expense.getSplits().stream().map(split -> new ExpenseSplitResponseDTO(
+                        split.getExpenseSplitId(),
                         split.getUser().getUserId(),
                         split.getUser().getUsername(),
                         split.getUser().getAvatarURL(),
-                        split.getAmountOwed()))
+                        split.getAmountOwed(),
+                        split.getAmountPaid()))
                 .toList();
 
         return new ExpenseResponseDTO(
