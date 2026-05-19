@@ -1,7 +1,7 @@
 package nicolagraziani.billbuddy.expense.controllers;
 
-import nicolagraziani.billbuddy.expense.payloads.ExpenseResponseDTO;
-import nicolagraziani.billbuddy.expense.payloads.GetExpensesFilterDTO;
+import nicolagraziani.billbuddy.expense.payloads.expense.ExpenseResponseDTO;
+import nicolagraziani.billbuddy.expense.payloads.expense.GetExpensesFilterDTO;
 import nicolagraziani.billbuddy.expense.services.ExpenseService;
 import nicolagraziani.billbuddy.user.User;
 import org.springframework.data.domain.Page;

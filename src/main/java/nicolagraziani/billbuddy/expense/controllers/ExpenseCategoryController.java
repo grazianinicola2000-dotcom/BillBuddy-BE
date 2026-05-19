@@ -1,8 +1,8 @@
 package nicolagraziani.billbuddy.expense.controllers;
 
 import nicolagraziani.billbuddy.exceptions.ValidationException;
-import nicolagraziani.billbuddy.expense.payloads.CreateExpenseCategoryDTO;
-import nicolagraziani.billbuddy.expense.payloads.ExpenseCategoryResponseDTO;
+import nicolagraziani.billbuddy.expense.payloads.expenseCategory.CreateExpenseCategoryDTO;
+import nicolagraziani.billbuddy.expense.payloads.expenseCategory.ExpenseCategoryResponseDTO;
 import nicolagraziani.billbuddy.expense.services.ExpenseCategoryService;
 import org.springframework.context.support.DefaultMessageSourceResolvable;
 import org.springframework.http.HttpStatus;

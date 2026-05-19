@@ -1,4 +1,4 @@
-package nicolagraziani.billbuddy.expense.payloads;
+package nicolagraziani.billbuddy.expense.payloads.expense;
 
 import jakarta.validation.constraints.*;
 import nicolagraziani.billbuddy.expense.enums.CurrencyCode;

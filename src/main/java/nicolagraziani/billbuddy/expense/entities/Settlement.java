@@ -40,11 +40,8 @@ public class Settlement {
     @Enumerated(EnumType.STRING)
     private CurrencyCode currencyCode;
 
-    @Column(nullable = false, name = "settlement_date")
-    private LocalDateTime settlementDate;
-
     @ManyToOne
-    @JoinColumn(name = "group_id")
+    @JoinColumn(nullable = false, name = "group_id")
     private Group group;
 
     @Column(nullable = false, name = "created_at")
@@ -53,12 +50,11 @@ public class Settlement {
     @Column
     private String note;
 
-    public Settlement(User payer, User receiver, BigDecimal amount, CurrencyCode currencyCode, LocalDateTime settlementDate, Group group, String note) {
+    public Settlement(User payer, User receiver, BigDecimal amount, CurrencyCode currencyCode, Group group, String note) {
         this.payer = payer;
         this.receiver = receiver;
         this.amount = amount;
         this.currencyCode = currencyCode;
-        this.settlementDate = settlementDate;
         this.group = group;
         this.createdAt = LocalDateTime.now();
         this.note = note;

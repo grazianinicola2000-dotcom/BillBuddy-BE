@@ -1,4 +1,4 @@
-package nicolagraziani.billbuddy.expense.payloads;
+package nicolagraziani.billbuddy.expense.payloads.expenseCategory;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;

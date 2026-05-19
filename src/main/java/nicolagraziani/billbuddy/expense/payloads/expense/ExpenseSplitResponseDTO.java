@@ -1,4 +1,4 @@
-package nicolagraziani.billbuddy.expense.payloads;
+package nicolagraziani.billbuddy.expense.payloads.expense;
 
 import java.math.BigDecimal;
 import java.util.UUID;

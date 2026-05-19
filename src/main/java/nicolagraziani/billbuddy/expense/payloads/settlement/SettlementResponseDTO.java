@@ -1,4 +1,4 @@
-package nicolagraziani.billbuddy.expense.payloads;
+package nicolagraziani.billbuddy.expense.payloads.settlement;
 
 import nicolagraziani.billbuddy.expense.enums.CurrencyCode;
 
@@ -17,6 +17,5 @@ public record SettlementResponseDTO(
         BigDecimal amount,
         CurrencyCode currencyCode,
         String note,
-        LocalDateTime settlementDate,
         LocalDateTime createdAt) {
 }
