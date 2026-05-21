@@ -40,13 +40,15 @@ public class ExpenseService {
     private final GroupService groupService;
     private final GroupMemberService groupMemberService;
     private final ExpenseCategoryService expenseCategoryService;
+    private final SettlementService settlementService;
 
-    public ExpenseService(ExpenseRepository expenseRepository, UserService userService, GroupService groupService, GroupMemberService groupMemberService, ExpenseCategoryService expenseCategoryService) {
+    public ExpenseService(ExpenseRepository expenseRepository, UserService userService, GroupService groupService, GroupMemberService groupMemberService, ExpenseCategoryService expenseCategoryService, SettlementService settlementService) {
         this.expenseRepository = expenseRepository;
         this.userService = userService;
         this.groupService = groupService;
         this.groupMemberService = groupMemberService;
         this.expenseCategoryService = expenseCategoryService;
+        this.settlementService = settlementService;
     }
 
     public Expense findExpenseById(UUID expenseId) {
@@ -245,6 +247,14 @@ public class ExpenseService {
         return expenses.map(this::mapToResponse);
     }
 
+    public List<Expense> findExpensesPaidByUserRaw(User user) {
+        return this.expenseRepository.findByPaidBy(user);
+    }
+
+    public List<Expense> findExpensesByGroupRaw(Group group) {
+        return this.expenseRepository.findByGroup(group);
+    }
+
     //    FIND GROUP EXPENSES
     public Page<ExpenseResponseDTO> findGroupExpenses(int page, int size, String sortBy, User currentUser, GetExpensesFilterDTO filters, UUID groupId) {
         if (size > 100 || size < 1) size = 20;
@@ -269,14 +279,18 @@ public class ExpenseService {
         Expense foundExpense = this.findExpenseById(expenseId);
         User foundUser = this.userService.findActiveUserById(currentUser.getUserId());
 
+        boolean hasSettlements = this.settlementService.expenseHasSettlements(foundExpense);
         boolean isPayer = foundExpense.getPaidBy().getUserId().equals(foundUser.getUserId());
         boolean isSystemAdmin = foundUser.getRole() == Role.ADMIN;
+
+        if (hasSettlements) {
+            throw new BadRequestException("Cannot delete expense with settlements");
+        }
 
         boolean isGroupOwner = false;
         if (foundExpense.getGroup() != null) {
             isGroupOwner = this.groupMemberService.isOwnerOrSystemAdmin(foundExpense.getGroup(), foundUser);
         }
-
         if (!isPayer && !isGroupOwner && !isSystemAdmin) {
             throw new AuthorizationDeniedException("You are not allowed to delete this expense");
         }

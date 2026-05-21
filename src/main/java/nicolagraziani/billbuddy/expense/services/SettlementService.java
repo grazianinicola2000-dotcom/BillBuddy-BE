@@ -3,6 +3,7 @@ package nicolagraziani.billbuddy.expense.services;
 import lombok.extern.slf4j.Slf4j;
 import nicolagraziani.billbuddy.exceptions.BadRequestException;
 import nicolagraziani.billbuddy.exceptions.NotFoundException;
+import nicolagraziani.billbuddy.expense.entities.Expense;
 import nicolagraziani.billbuddy.expense.entities.ExpenseSplit;
 import nicolagraziani.billbuddy.expense.entities.Settlement;
 import nicolagraziani.billbuddy.expense.enums.ExpenseType;
@@ -25,6 +26,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.util.List;
 import java.util.UUID;
 
 @Service
@@ -153,6 +155,11 @@ public class SettlementService {
         }
     }
 
+    //    VALIDATION FOR EXPENSE DELETE
+    public boolean expenseHasSettlements(Expense expense) {
+        return this.settlementRepository.existsByExpenseSplit_Expense(expense);
+    }
+
     private SettlementResponseDTO mapToResponse(Settlement settlement) {
         return new SettlementResponseDTO(
                 settlement.getSettlementId(),
@@ -166,5 +173,13 @@ public class SettlementService {
                 settlement.getCurrencyCode(),
                 settlement.getNote(), settlement.getCreatedAt()
         );
+    }
+
+    public List<Settlement> findSettlementsByCreditor(User user) {
+        return this.settlementRepository.findByCreditor(user);
+    }
+
+    public List<Settlement> findSettlementByGroup(Group group) {
+        return this.settlementRepository.findByGroup(group);
     }
 }

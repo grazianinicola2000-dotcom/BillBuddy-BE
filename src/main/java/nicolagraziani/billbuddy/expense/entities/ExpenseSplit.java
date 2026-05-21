@@ -8,6 +8,8 @@ import lombok.Setter;
 import nicolagraziani.billbuddy.user.User;
 
 import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 
 @Entity
@@ -35,6 +37,9 @@ public class ExpenseSplit {
 
     @Column(nullable = false, name = "amount_paid", precision = 10, scale = 2)
     private BigDecimal amountPaid;
+
+    @OneToMany(mappedBy = "expenseSplit")
+    private List<Settlement> settlements = new ArrayList<>();
 
     public ExpenseSplit(Expense expense, User user, BigDecimal amountOwed) {
         this.expense = expense;
