@@ -1,4 +1,4 @@
 package nicolagraziani.billbuddy.auth;
 
-public record LoginResponseDTO(String accessToken) {
+public record LoginResponseDTO(String token) {
 }
