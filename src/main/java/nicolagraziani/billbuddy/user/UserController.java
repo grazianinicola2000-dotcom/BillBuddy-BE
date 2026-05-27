@@ -4,6 +4,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @RestController
 @RequestMapping("/users")
 public class UserController {
@@ -28,5 +30,10 @@ public class UserController {
     public PublicUserResponseDTO findByUsername(@PathVariable String username) {
         User found = this.userService.findByUsernameAndIsActive(username);
         return new PublicUserResponseDTO(found.getUserId(), found.getUsername(), found.getAvatarURL());
+    }
+
+    @GetMapping("/search")
+    public List<PublicUserResponseDTO> searchUser(@RequestParam String query) {
+        return this.userService.searchUsers(query);
     }
 }

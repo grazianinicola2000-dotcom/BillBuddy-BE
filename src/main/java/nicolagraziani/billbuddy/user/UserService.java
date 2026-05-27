@@ -11,6 +11,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 import java.util.UUID;
 
 @Service
@@ -84,5 +85,16 @@ public class UserService {
         found.setActive(true);
         this.userRepository.save(found);
         log.info("User {} has been successfully activated", found.getUsername());
+    }
+
+    public List<PublicUserResponseDTO> searchUsers(String partialUsername) {
+        Pageable pageable = PageRequest.of(0, 10);
+        if (partialUsername.length() < 2) return List.of();
+        return this.userRepository.findByUsernameContainingIgnoreCaseAndIsActiveTrue(partialUsername, pageable)
+                .stream().map(user -> new PublicUserResponseDTO(
+                        user.getUserId(),
+                        user.getUsername(),
+                        user.getAvatarURL()
+                )).toList();
     }
 }
