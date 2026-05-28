@@ -9,6 +9,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
+import java.util.Optional;
 import java.util.UUID;
 
 @Repository
@@ -27,4 +28,6 @@ public interface InviteRepository extends JpaRepository<Invite, UUID> {
     Page<Invite> findByInvitedByAndStatus(User invitedBy, InviteStatus status, Pageable pageable);
 
     Page<Invite> findByInvitedBy(User invitedBy, Pageable pageable);
+
+    Optional<Invite> findByGroupAndReceiverAndStatus(Group group, User receiver, InviteStatus status);
 }
