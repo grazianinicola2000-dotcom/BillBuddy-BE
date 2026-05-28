@@ -24,4 +24,7 @@ public interface InviteRepository extends JpaRepository<Invite, UUID> {
 
     Page<Invite> findByReceiverAndStatus(User receiver, Pageable pageable, InviteStatus status);
 
+    Page<Invite> findByInvitedByAndStatus(User invitedBy, InviteStatus status, Pageable pageable);
+
+    Page<Invite> findByInvitedBy(User invitedBy, Pageable pageable);
 }

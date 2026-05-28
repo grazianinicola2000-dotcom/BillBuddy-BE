@@ -199,4 +199,34 @@ public class InviteService {
                 )
         );
     }
+
+    public Page<InviteResponseDTO> findSentInvites(int page, int size, String sortBy, User user, InviteStatus status) {
+        if (size > 100 || size < 1) size = 20;
+        if (page < 0) page = 0;
+        Pageable pageable = PageRequest.of(page, size, Sort.by(sortBy).descending());
+
+        User foundUser = this.userService.findActiveUserById(user.getUserId());
+        Page<Invite> invites;
+
+        if (status != null) {
+            invites = this.inviteRepository.findByInvitedByAndStatus(foundUser, status, pageable);
+        } else {
+            invites = this.inviteRepository.findByInvitedBy(foundUser, pageable);
+        }
+
+        return invites.map(
+                invite -> new InviteResponseDTO(
+                        invite.getInviteId(),
+                        invite.getGroup().getGroupId(),
+                        invite.getGroup().getName(),
+                        invite.getInvitedBy().getUserId(),
+                        invite.getInvitedBy().getUsername(),
+                        invite.getReceiver().getUserId(),
+                        invite.getReceiver().getUsername(),
+                        invite.getStatus(),
+                        invite.getCreatedAt(),
+                        invite.getExpiresAt()
+                )
+        );
+    }
 }

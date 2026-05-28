@@ -62,13 +62,16 @@ public class InviteController {
                                                  @RequestParam(defaultValue = "20") int size,
                                                  @RequestParam(defaultValue = "createdAt") String sortBy,
                                                  @RequestParam(required = false) InviteStatus status) {
-        return this.inviteService.findMyInvites(
-                page,
-                size,
-                sortBy,
-                currentAuthenticatedUser,
-                status
-        );
+        return this.inviteService.findMyInvites(page, size, sortBy, currentAuthenticatedUser, status);
+    }
+
+    @GetMapping("/invites/sent")
+    public Page<InviteResponseDTO> findMySentInvites(@AuthenticationPrincipal User currentAuthenticatedUser,
+                                                     @RequestParam(defaultValue = "0") int page,
+                                                     @RequestParam(defaultValue = "20") int size,
+                                                     @RequestParam(defaultValue = "createdAt") String sortBy,
+                                                     @RequestParam(required = false) InviteStatus status) {
+        return this.inviteService.findSentInvites(page, size, sortBy, currentAuthenticatedUser, status);
     }
 }
 
