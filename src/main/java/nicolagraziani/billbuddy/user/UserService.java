@@ -5,9 +5,10 @@ import lombok.extern.slf4j.Slf4j;
 import nicolagraziani.billbuddy.exceptions.BadRequestException;
 import nicolagraziani.billbuddy.exceptions.NotFoundException;
 import nicolagraziani.billbuddy.group.entities.Group;
+import nicolagraziani.billbuddy.group.enums.InviteStatus;
+import nicolagraziani.billbuddy.group.repositories.InviteRepository;
 import nicolagraziani.billbuddy.group.services.GroupMemberService;
 import nicolagraziani.billbuddy.group.services.GroupService;
-import nicolagraziani.billbuddy.group.services.InviteService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -25,14 +26,14 @@ public class UserService {
     private final PasswordEncoder bcrypt;
     private final UserRepository userRepository;
     private final GroupService groupService;
-    private final InviteService inviteService;
+    private final InviteRepository inviteRepository;
     private final GroupMemberService groupMemberService;
 
-    public UserService(PasswordEncoder bcrypt, UserRepository userRepository, GroupService groupService, InviteService inviteService, GroupMemberService groupMemberService) {
+    public UserService(PasswordEncoder bcrypt, UserRepository userRepository, GroupService groupService, InviteRepository inviteRepository, GroupMemberService groupMemberService) {
         this.bcrypt = bcrypt;
         this.userRepository = userRepository;
         this.groupService = groupService;
-        this.inviteService = inviteService;
+        this.inviteRepository = inviteRepository;
         this.groupMemberService = groupMemberService;
     }
 
@@ -114,7 +115,7 @@ public class UserService {
 
         return users.stream().filter(user -> !user.getUserId().equals(currentUser.getUserId()))
                 .filter(user -> !this.groupMemberService.existsByGroupAndUser(foundGroup, user))
-                .filter(user -> this.inviteService.existsPendingInvite(foundGroup, user))
+                .filter(user -> this.inviteRepository.findByGroupAndReceiverAndStatus(foundGroup, user, InviteStatus.PENDING).isEmpty())
                 .map(user -> new PublicUserResponseDTO(user.getUserId(), user.getUsername(), user.getAvatarURL())).toList();
     }
 }
