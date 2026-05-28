@@ -6,9 +6,9 @@ import nicolagraziani.billbuddy.exceptions.BadRequestException;
 import nicolagraziani.billbuddy.exceptions.NotFoundException;
 import nicolagraziani.billbuddy.group.entities.Group;
 import nicolagraziani.billbuddy.group.enums.InviteStatus;
+import nicolagraziani.billbuddy.group.repositories.GroupMemberRepository;
+import nicolagraziani.billbuddy.group.repositories.GroupRepository;
 import nicolagraziani.billbuddy.group.repositories.InviteRepository;
-import nicolagraziani.billbuddy.group.services.GroupMemberService;
-import nicolagraziani.billbuddy.group.services.GroupService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -25,16 +25,16 @@ public class UserService {
 
     private final PasswordEncoder bcrypt;
     private final UserRepository userRepository;
-    private final GroupService groupService;
+    private final GroupRepository groupRepository;
     private final InviteRepository inviteRepository;
-    private final GroupMemberService groupMemberService;
+    private final GroupMemberRepository groupMemberRepository;
 
-    public UserService(PasswordEncoder bcrypt, UserRepository userRepository, GroupService groupService, InviteRepository inviteRepository, GroupMemberService groupMemberService) {
+    public UserService(PasswordEncoder bcrypt, UserRepository userRepository, GroupRepository groupRepository, InviteRepository inviteRepository, GroupMemberRepository groupMemberRepository) {
         this.bcrypt = bcrypt;
         this.userRepository = userRepository;
-        this.groupService = groupService;
+        this.groupRepository = groupRepository;
         this.inviteRepository = inviteRepository;
-        this.groupMemberService = groupMemberService;
+        this.groupMemberRepository = groupMemberRepository;
     }
 
     public UserResponseDTO saveUser(UserDTO body) {
@@ -110,11 +110,11 @@ public class UserService {
     }
 
     public List<PublicUserResponseDTO> findInviteableUsers(UUID groupId, String query, User currentUser) {
-        Group foundGroup = this.groupService.findGroupById(groupId);
+        Group foundGroup = this.groupRepository.findById(groupId).orElseThrow(() -> new NotFoundException(groupId));
         List<User> users = this.userRepository.findTop10ByUsernameContainingIgnoreCaseAndIsActiveTrue(query);
-
+        
         return users.stream().filter(user -> !user.getUserId().equals(currentUser.getUserId()))
-                .filter(user -> !this.groupMemberService.existsByGroupAndUser(foundGroup, user))
+                .filter(user -> !this.groupMemberRepository.existsByGroupAndUser(foundGroup, user))
                 .filter(user -> this.inviteRepository.findByGroupAndReceiverAndStatus(foundGroup, user, InviteStatus.PENDING).isEmpty())
                 .map(user -> new PublicUserResponseDTO(user.getUserId(), user.getUsername(), user.getAvatarURL())).toList();
     }
