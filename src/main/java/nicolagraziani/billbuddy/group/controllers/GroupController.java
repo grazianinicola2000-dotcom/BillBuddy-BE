@@ -5,7 +5,9 @@ import nicolagraziani.billbuddy.group.payloads.CreateGroupDTO;
 import nicolagraziani.billbuddy.group.payloads.GroupDetailsResponseDTO;
 import nicolagraziani.billbuddy.group.payloads.GroupResponseDTO;
 import nicolagraziani.billbuddy.group.services.GroupService;
+import nicolagraziani.billbuddy.user.PublicUserResponseDTO;
 import nicolagraziani.billbuddy.user.User;
+import nicolagraziani.billbuddy.user.UserService;
 import org.springframework.context.support.DefaultMessageSourceResolvable;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
@@ -22,9 +24,11 @@ import java.util.UUID;
 public class GroupController {
 
     private final GroupService groupService;
+    private final UserService userService;
 
-    public GroupController(GroupService groupService) {
+    public GroupController(GroupService groupService, UserService userService) {
         this.groupService = groupService;
+        this.userService = userService;
     }
 
     @PostMapping
@@ -63,5 +67,16 @@ public class GroupController {
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void deleteGroup(@PathVariable UUID groupId, @AuthenticationPrincipal User currentAuthenticatedUser) {
         this.groupService.deleteGroup(groupId, currentAuthenticatedUser);
+    }
+
+    @GetMapping("/{groupId}/inviteable-users")
+    public List<PublicUserResponseDTO>
+    findInviteableUsers(
+            @PathVariable UUID groupId,
+            @RequestParam String query,
+            @AuthenticationPrincipal
+            User currentUser
+    ) {
+        return this.userService.findInviteableUsers(groupId, query, currentUser);
     }
 }

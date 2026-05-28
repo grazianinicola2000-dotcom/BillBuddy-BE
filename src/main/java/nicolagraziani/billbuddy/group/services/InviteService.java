@@ -229,8 +229,4 @@ public class InviteService {
                 )
         );
     }
-
-    public boolean existsPendingInvite(Group group, User receiver) {
-        return this.inviteRepository.findByGroupAndReceiverAndStatus(group, receiver, InviteStatus.PENDING).isPresent();
-    }
 }
