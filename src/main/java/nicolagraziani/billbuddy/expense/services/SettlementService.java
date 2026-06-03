@@ -179,6 +179,13 @@ public class SettlementService {
         return this.settlementRepository.findByCreditor(user);
     }
 
+    public List<SettlementResponseDTO> findByGroup(UUID groupId, User user) {
+        Group group = this.groupService.findGroupById(groupId);
+        this.groupMemberService.validateMembership(group, user);
+        List<Settlement> settlements = this.settlementRepository.findByGroup(group);
+        return settlements.stream().map(this::mapToResponse).toList();
+    }
+
     public List<Settlement> findSettlementByGroup(Group group) {
         return this.settlementRepository.findByGroup(group);
     }

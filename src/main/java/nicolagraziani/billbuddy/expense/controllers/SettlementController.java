@@ -57,4 +57,9 @@ public class SettlementController {
     public void deleteSettlement(@PathVariable UUID settlementId, @AuthenticationPrincipal User currentAuthenticatedUser) {
         this.settlementService.deleteSettlement(settlementId, currentAuthenticatedUser);
     }
+
+    @GetMapping("/groups/{groupId}")
+    public List<SettlementResponseDTO> findByGroup(@PathVariable UUID groupId, @AuthenticationPrincipal User currentAuthenticatedUser) {
+        return this.settlementService.findByGroup(groupId, currentAuthenticatedUser);
+    }
 }
