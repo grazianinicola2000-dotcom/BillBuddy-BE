@@ -15,6 +15,7 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 import java.util.UUID;
@@ -79,5 +80,10 @@ public class GroupController {
     ) {
         System.out.println("endpoint hit");
         return this.userService.findInviteableUsers(groupId, query, currentUser);
+    }
+
+    @PatchMapping("/{groupId}/image")
+    public GroupResponseDTO uploadGroupImage(@PathVariable UUID groupId, @RequestParam("group_img") MultipartFile file, @AuthenticationPrincipal User currentAuthenticatedUser) {
+        return this.groupService.uploadGroupImage(file, groupId, currentAuthenticatedUser);
     }
 }

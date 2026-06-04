@@ -1,6 +1,9 @@
 package nicolagraziani.billbuddy.group.services;
 
+import com.cloudinary.Cloudinary;
+import com.cloudinary.utils.ObjectUtils;
 import lombok.extern.slf4j.Slf4j;
+import nicolagraziani.billbuddy.exceptions.BadRequestException;
 import nicolagraziani.billbuddy.exceptions.NotFoundException;
 import nicolagraziani.billbuddy.group.entities.Group;
 import nicolagraziani.billbuddy.group.entities.GroupMember;
@@ -19,8 +22,12 @@ import org.springframework.data.domain.Sort;
 import org.springframework.security.authorization.AuthorizationDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 import java.util.UUID;
 
 @Service
@@ -30,11 +37,13 @@ public class GroupService {
     private final GroupRepository groupRepository;
     private final GroupMemberService groupMemberService;
     private final UserService userService;
+    private final Cloudinary cloudinary;
 
-    public GroupService(GroupRepository groupRepository, GroupMemberService groupMemberService, UserService userService) {
+    public GroupService(GroupRepository groupRepository, GroupMemberService groupMemberService, UserService userService, Cloudinary cloudinary) {
         this.groupRepository = groupRepository;
         this.groupMemberService = groupMemberService;
         this.userService = userService;
+        this.cloudinary = cloudinary;
     }
 
     public Group findGroupById(UUID groupId) {
@@ -134,11 +143,46 @@ public class GroupService {
         if (!this.groupMemberService.isOwnerOrSystemAdmin(found, user)) {
             throw new AuthorizationDeniedException("You are not allowed to delete this group");
         }
-        
+
         this.groupMemberService.deleteAllByGroup(found);
         this.groupRepository.delete(found);
         log.info("Group '{}' deleted by user {}",
                 found.getName(),
                 user.getUsername());
+    }
+
+    public GroupResponseDTO uploadGroupImage(MultipartFile file, UUID groupId, User currentUser) {
+        Group foundGroup = this.findGroupById(groupId);
+
+        if (!this.groupMemberService.isOwnerOrSystemAdmin(foundGroup, currentUser)) {
+            throw new AuthorizationDeniedException("You are not allowed to update this group image");
+        }
+        if (file.isEmpty()) {
+            throw new BadRequestException("No file uploaded");
+        }
+        if (!Objects.requireNonNull(file.getContentType()).startsWith("image/")) {
+            throw new BadRequestException("Only image files are allowed");
+        }
+        if (file.getSize() > 5_000_000) {
+            throw new BadRequestException("Image size must be less than 5 MB");
+        }
+
+        try {
+            Map result = cloudinary.uploader().upload(file.getBytes(), ObjectUtils.emptyMap());
+            String url = (String) result.get("secure_url");
+
+            foundGroup.setImageUrl(url);
+            this.groupRepository.save(foundGroup);
+            log.info("Group image updated successfully for group {}", foundGroup.getName());
+            return new GroupResponseDTO(
+                    foundGroup.getGroupId(),
+                    foundGroup.getName(),
+                    foundGroup.getDescription(),
+                    foundGroup.getImageUrl(),
+                    foundGroup.getCreatedAt());
+        } catch (IOException e) {
+            log.error("Failed to upload image for group {}", foundGroup.getName(), e);
+            throw new BadRequestException("Failed to upload image. Please try again.");
+        }
     }
 }
