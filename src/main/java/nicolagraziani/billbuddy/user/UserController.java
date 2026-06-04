@@ -3,6 +3,7 @@ package nicolagraziani.billbuddy.user;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
@@ -35,5 +36,10 @@ public class UserController {
     @GetMapping("/search")
     public List<PublicUserResponseDTO> searchUser(@RequestParam String query) {
         return this.userService.searchUsers(query);
+    }
+
+    @PatchMapping("/me/profileImg")
+    public UserResponseDTO uploadImage(@RequestParam("profile_img") MultipartFile file, @AuthenticationPrincipal User currentAuthenticatedUser) {
+        return this.userService.userImgUpload(file, currentAuthenticatedUser.getUserId());
     }
 }

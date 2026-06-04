@@ -1,6 +1,8 @@
 package nicolagraziani.billbuddy.user;
 
 
+import com.cloudinary.Cloudinary;
+import com.cloudinary.utils.ObjectUtils;
 import lombok.extern.slf4j.Slf4j;
 import nicolagraziani.billbuddy.exceptions.BadRequestException;
 import nicolagraziani.billbuddy.exceptions.NotFoundException;
@@ -15,8 +17,12 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 import java.util.UUID;
 
 @Service
@@ -28,13 +34,15 @@ public class UserService {
     private final GroupRepository groupRepository;
     private final InviteRepository inviteRepository;
     private final GroupMemberRepository groupMemberRepository;
+    private final Cloudinary cloudinary;
 
-    public UserService(PasswordEncoder bcrypt, UserRepository userRepository, GroupRepository groupRepository, InviteRepository inviteRepository, GroupMemberRepository groupMemberRepository) {
+    public UserService(PasswordEncoder bcrypt, UserRepository userRepository, GroupRepository groupRepository, InviteRepository inviteRepository, GroupMemberRepository groupMemberRepository, Cloudinary cloudinary) {
         this.bcrypt = bcrypt;
         this.userRepository = userRepository;
         this.groupRepository = groupRepository;
         this.inviteRepository = inviteRepository;
         this.groupMemberRepository = groupMemberRepository;
+        this.cloudinary = cloudinary;
     }
 
     public UserResponseDTO saveUser(UserDTO body) {
@@ -112,10 +120,44 @@ public class UserService {
     public List<PublicUserResponseDTO> findInviteableUsers(UUID groupId, String query, User currentUser) {
         Group foundGroup = this.groupRepository.findById(groupId).orElseThrow(() -> new NotFoundException(groupId));
         List<User> users = this.userRepository.findTop10ByUsernameContainingIgnoreCaseAndIsActiveTrue(query);
-        
+
         return users.stream().filter(user -> !user.getUserId().equals(currentUser.getUserId()))
                 .filter(user -> !this.groupMemberRepository.existsByGroupAndUser(foundGroup, user))
                 .filter(user -> this.inviteRepository.findByGroupAndReceiverAndStatus(foundGroup, user, InviteStatus.PENDING).isEmpty())
                 .map(user -> new PublicUserResponseDTO(user.getUserId(), user.getUsername(), user.getAvatarURL())).toList();
+    }
+
+    public UserResponseDTO userImgUpload(MultipartFile file, UUID employeeId) {
+        User found = this.findUserById(employeeId);
+        if (file.isEmpty()) {
+            throw new BadRequestException("No file uploaded");
+        }
+        if (!Objects.requireNonNull(file.getContentType()).startsWith("image/")) {
+            throw new BadRequestException("Only image files are allowed");
+        }
+        if (file.getSize() > 5_000_000) {
+            throw new BadRequestException("Image size must be less than 5 MB");
+        }
+        try {
+            Map result = cloudinary.uploader().upload(file.getBytes(), ObjectUtils.emptyMap());
+            String url = (String) result.get("secure_url");
+            found.setAvatarURL(url);
+            this.userRepository.save(found);
+            log.info("User {} updated profile image", found.getUsername());
+            return new UserResponseDTO(
+                    found.getUserId(),
+                    found.getName(),
+                    found.getSurname(),
+                    found.getUsername(),
+                    found.getEmail(),
+                    found.getDateOfBirth(),
+                    found.getAvatarURL(),
+                    found.getRole(),
+                    found.isActive()
+            );
+        } catch (IOException e) {
+            log.error("Failed to upload profile image for user {}", found.getUsername(), e);
+            throw new BadRequestException("Failed to upload image. Please try again.");
+        }
     }
 }
