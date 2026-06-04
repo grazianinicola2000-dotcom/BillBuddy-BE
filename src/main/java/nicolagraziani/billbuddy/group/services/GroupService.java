@@ -134,6 +134,7 @@ public class GroupService {
         if (!this.groupMemberService.isOwnerOrSystemAdmin(found, user)) {
             throw new AuthorizationDeniedException("You are not allowed to delete this group");
         }
+        
         this.groupMemberService.deleteAllByGroup(found);
         this.groupRepository.delete(found);
         log.info("Group '{}' deleted by user {}",

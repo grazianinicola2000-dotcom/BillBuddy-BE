@@ -3,6 +3,8 @@ package nicolagraziani.billbuddy.group.services;
 import lombok.extern.slf4j.Slf4j;
 import nicolagraziani.billbuddy.exceptions.BadRequestException;
 import nicolagraziani.billbuddy.exceptions.NotFoundException;
+import nicolagraziani.billbuddy.expense.entities.ExpenseSplit;
+import nicolagraziani.billbuddy.expense.services.ExpenseSplitService;
 import nicolagraziani.billbuddy.group.entities.Group;
 import nicolagraziani.billbuddy.group.entities.GroupMember;
 import nicolagraziani.billbuddy.group.enums.GroupRole;
@@ -18,6 +20,7 @@ import org.springframework.security.authorization.AuthorizationDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.UUID;
 
@@ -27,11 +30,13 @@ public class GroupMemberService {
     private final GroupMemberRepository groupMemberRepository;
     private final GroupRepository groupRepository;
     private final UserService userService;
+    private final ExpenseSplitService expenseSplitService;
 
-    public GroupMemberService(GroupMemberRepository groupMemberRepository, GroupRepository groupRepository, UserService userService) {
+    public GroupMemberService(GroupMemberRepository groupMemberRepository, GroupRepository groupRepository, UserService userService, ExpenseSplitService expenseSplitService) {
         this.groupMemberRepository = groupMemberRepository;
         this.groupRepository = groupRepository;
         this.userService = userService;
+        this.expenseSplitService = expenseSplitService;
     }
 
     public GroupMemberResponseDTO saveGroupMember(User user, Group group, GroupRole role) {
@@ -104,6 +109,9 @@ public class GroupMemberService {
         if (foundCurrentUser.getUserId().equals(foundTargetUser.getUserId()) && !isSystemAdmin) {
             throw new BadRequestException("Owners cannot remove themselves from the group");
         }
+        if (this.userHasOpenBalances(foundGroup, userId)) {
+            throw new BadRequestException("This member has open debts or credits and cannot be removed from the group");
+        }
 
         this.groupMemberRepository.delete(targetMembership);
         log.info("User {} removed {} from group {}",
@@ -166,5 +174,19 @@ public class GroupMemberService {
         if (!this.existsByGroupAndUser(group, user)) {
             throw new AuthorizationDeniedException("You are not a member of this group");
         }
+    }
+
+    private boolean userHasOpenBalances(Group group, UUID userId) {
+        List<ExpenseSplit> splits = this.expenseSplitService.findExpenseSplitByGroup(group);
+        return splits.stream().anyMatch(split -> {
+            BigDecimal remainingDebt = split.getAmountOwed().subtract(split.getAmountPaid());
+            if (remainingDebt.compareTo(BigDecimal.ZERO) <= 0) {
+                return false;
+            }
+
+            UUID debtorId = split.getUser().getUserId();
+            UUID creditorId = split.getExpense().getPaidBy().getUserId();
+            return debtorId.equals(userId) || creditorId.equals(userId);
+        });
     }
 }
