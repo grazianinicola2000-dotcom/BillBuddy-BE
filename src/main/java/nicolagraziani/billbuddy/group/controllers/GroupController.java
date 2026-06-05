@@ -78,7 +78,6 @@ public class GroupController {
             @AuthenticationPrincipal
             User currentUser
     ) {
-        System.out.println("endpoint hit");
         return this.userService.findInviteableUsers(groupId, query, currentUser);
     }
 
